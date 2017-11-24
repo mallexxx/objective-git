@@ -19,3 +19,6 @@
 [submodule "Carthage/Checkouts/ZipArchive"]
 	path = Carthage/Checkouts/ZipArchive
 	url = https://github.com/ZipArchive/ZipArchive.git
+[submodule "Carthage/Checkouts/libgit2"]
+	path = Carthage/Checkouts/libgit2
+	url = https://github.com/mallexxx/libgit2.git
