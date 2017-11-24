@@ -32,6 +32,7 @@ NSString *const GTRepositoryRemoteOptionsPushNotes = @"GTRepositoryRemoteOptions
 
 typedef void (^GTRemoteFetchTransferProgressBlock)(const git_transfer_progress *stats, BOOL *stop);
 typedef void (^GTRemotePushTransferProgressBlock)(unsigned int current, unsigned int total, size_t bytes, BOOL *stop);
+typedef void (^GTRemoteFetchSidebandProgressBlock)(const char *str, int len, BOOL *stop);
 
 @implementation GTRepository (RemoteOperations)
 
@@ -43,7 +44,19 @@ typedef struct {
 	__unsafe_unretained GTRemoteFetchTransferProgressBlock fetchProgressBlock;
 	__unsafe_unretained GTRemotePushTransferProgressBlock pushProgressBlock;
 	git_direction direction;
+	__unsafe_unretained GTRemoteFetchSidebandProgressBlock sidebandProgressBlock;
 } GTRemoteConnectionInfo;
+
+int GTRemoteFetchSidebandProgressCallback(const char *str, int len, void *payload) {
+	GTRemoteConnectionInfo *info = payload;
+	BOOL stop = NO;
+	
+	if (info->sidebandProgressBlock != nil) {
+		info->sidebandProgressBlock(str, len, &stop);
+	}
+	
+	return (stop == YES ? GIT_EUSER : 0);
+}
 
 int GTRemoteFetchTransferProgressCallback(const git_transfer_progress *stats, void *payload) {
 	GTRemoteConnectionInfo *info = payload;
@@ -70,17 +83,23 @@ int GTRemotePushTransferProgressCallback(unsigned int current, unsigned int tota
 #pragma mark - Fetch
 
 - (BOOL)fetchRemote:(GTRemote *)remote withOptions:(NSDictionary *)options error:(NSError **)error progress:(GTRemoteFetchTransferProgressBlock)progressBlock {
+	return [self fetchRemote:remote withOptions:options error:error progress:progressBlock sidebandProgress:nil];
+}
+
+- (BOOL)fetchRemote:(GTRemote *)remote withOptions:(NSDictionary *)options error:(NSError **)error progress:(GTRemoteFetchTransferProgressBlock)progressBlock sidebandProgress:(GTRemoteFetchSidebandProgressBlock)sidebandProgress {
 
 	GTCredentialProvider *credProvider = options[GTRepositoryRemoteOptionsCredentialProvider];
 	GTRemoteConnectionInfo connectionInfo = {
 		.credProvider = {credProvider},
 		.direction = GIT_DIRECTION_FETCH,
 		.fetchProgressBlock = progressBlock,
+		.sidebandProgressBlock = sidebandProgress
 	};
 	git_remote_callbacks remote_callbacks = {
 		.version = GIT_REMOTE_CALLBACKS_VERSION,
 		.credentials = (credProvider != nil ? GTCredentialAcquireCallback : NULL),
 		.transfer_progress = GTRemoteFetchTransferProgressCallback,
+		.sideband_progress = GTRemoteFetchSidebandProgressCallback,
 		.payload = &connectionInfo,
 	};
 
@@ -168,14 +187,26 @@ int GTFetchHeadEntriesCallback(const char *ref_name, const char *remote_url, con
 
 #pragma mark - Push (Public)
 
+- (BOOL)pushBranch:(GTBranch *)branch toRemote:(GTRemote *)remote withOptions:(NSDictionary *)options error:(NSError **)error progress:(GTRemotePushTransferProgressBlock)progressBlock sidebandProgress:(GTRemoteFetchSidebandProgressBlock)sidebandProgress {
+	NSParameterAssert(branch != nil);
+	NSParameterAssert(remote != nil);
+	
+	return [self pushBranches:@[ branch ] toRemote:remote withOptions:options error:error progress:progressBlock sidebandProgress:sidebandProgress];
+}
+
 - (BOOL)pushBranch:(GTBranch *)branch toRemote:(GTRemote *)remote withOptions:(NSDictionary *)options error:(NSError **)error progress:(GTRemotePushTransferProgressBlock)progressBlock {
 	NSParameterAssert(branch != nil);
 	NSParameterAssert(remote != nil);
 
-	return [self pushBranches:@[ branch ] toRemote:remote withOptions:options error:error progress:progressBlock];
+	return [self pushBranches:@[ branch ] toRemote:remote withOptions:options error:error progress:progressBlock sidebandProgress:nil];
 }
 
 - (BOOL)pushBranches:(NSArray *)branches toRemote:(GTRemote *)remote withOptions:(NSDictionary *)options error:(NSError **)error progress:(GTRemotePushTransferProgressBlock)progressBlock {
+	
+	return [self pushBranches:branches toRemote:remote withOptions:options error:error progress:progressBlock sidebandProgress:nil];
+}
+
+- (BOOL)pushBranches:(NSArray *)branches toRemote:(GTRemote *)remote withOptions:(NSDictionary *)options error:(NSError **)error progress:(GTRemotePushTransferProgressBlock)progressBlock sidebandProgress:(GTRemoteFetchSidebandProgressBlock)sidebandProgress {
 	NSParameterAssert(branches != nil);
 	NSParameterAssert(branches.count != 0);
 	NSParameterAssert(remote != nil);
@@ -223,7 +254,7 @@ int GTFetchHeadEntriesCallback(const char *ref_name, const char *remote_url, con
 		}
 	}
 	
-	return [self pushRefspecs:refspecs toRemote:remote withOptions:options error:error progress:progressBlock];
+	return [self pushRefspecs:refspecs toRemote:remote withOptions:options error:error progress:progressBlock sidebandProgress:sidebandProgress];
 }
 
 - (BOOL)pushNotes:(NSString *)noteRef toRemote:(GTRemote *)remote withOptions:(NSDictionary *)options error:(NSError **)error progress:(GTRemotePushTransferProgressBlock)progressBlock {
@@ -239,7 +270,7 @@ int GTFetchHeadEntriesCallback(const char *ref_name, const char *remote_url, con
 
 	if (notesReference == nil) return NO;
 
-	return [self pushRefspecs:@[[NSString stringWithFormat:@"%@:%@", noteRef, noteRef]] toRemote:remote withOptions:options error:error progress:progressBlock];
+	return [self pushRefspecs:@[[NSString stringWithFormat:@"%@:%@", noteRef, noteRef]] toRemote:remote withOptions:options error:error progress:progressBlock sidebandProgress:nil];
 }
 
 #pragma mark - Deletion (Public)
@@ -249,12 +280,12 @@ int GTFetchHeadEntriesCallback(const char *ref_name, const char *remote_url, con
 		
 	NSArray *refspecs = @[ [NSString stringWithFormat:@":refs/heads/%@", branch.shortName] ];
 		
-	return [self pushRefspecs:refspecs toRemote:remote withOptions:options error:error progress:nil];
+	return [self pushRefspecs:refspecs toRemote:remote withOptions:options error:error progress:nil sidebandProgress:nil];
 }
 
 #pragma mark - Push (Private)
 
-- (BOOL)pushRefspecs:(NSArray *)refspecs toRemote:(GTRemote *)remote withOptions:(NSDictionary *)options error:(NSError **)error progress:(GTRemotePushTransferProgressBlock)progressBlock {
+- (BOOL)pushRefspecs:(NSArray *)refspecs toRemote:(GTRemote *)remote withOptions:(NSDictionary *)options error:(NSError **)error progress:(GTRemotePushTransferProgressBlock)progressBlock sidebandProgress:(GTRemoteFetchSidebandProgressBlock)sidebandProgress {
 
 	int gitError;
 	GTCredentialProvider *credProvider = options[GTRepositoryRemoteOptionsCredentialProvider];
@@ -263,11 +294,13 @@ int GTFetchHeadEntriesCallback(const char *ref_name, const char *remote_url, con
 		.credProvider = { .credProvider = credProvider },
 		.direction = GIT_DIRECTION_PUSH,
 		.pushProgressBlock = progressBlock,
+		.sidebandProgressBlock = sidebandProgress
 	};
 
 	git_remote_callbacks remote_callbacks = GIT_REMOTE_CALLBACKS_INIT;
 	remote_callbacks.credentials = (credProvider != nil ? GTCredentialAcquireCallback : NULL);
 	remote_callbacks.push_transfer_progress = GTRemotePushTransferProgressCallback;
+	remote_callbacks.sideband_progress = GTRemoteFetchSidebandProgressCallback;
 	remote_callbacks.payload = &connectionInfo;
 
 	gitError = git_remote_connect(remote.git_remote, GIT_DIRECTION_PUSH, &remote_callbacks, NULL, NULL);

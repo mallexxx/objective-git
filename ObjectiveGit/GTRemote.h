@@ -140,6 +140,8 @@ typedef enum {
 /// adding the refspec or saving the remote failed.
 - (BOOL)addFetchRefspec:(NSString *)fetchRefspec error:(NSError **)error;
 
+- (void)stop;
+
 @end
 
 NS_ASSUME_NONNULL_END

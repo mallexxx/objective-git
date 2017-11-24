@@ -53,6 +53,9 @@ typedef NS_ENUM(NSInteger, GTFetchPruneOption) {
 /// will point to an error describing what happened).
 - (BOOL)fetchRemote:(GTRemote *)remote withOptions:(NSDictionary * _Nullable)options error:(NSError **)error progress:(void (^ _Nullable)(const git_transfer_progress *stats, BOOL *stop))progressBlock;
 
+- (BOOL)fetchRemote:(GTRemote *)remote withOptions:(NSDictionary * _Nullable)options error:(NSError **)error progress:(void (^ _Nullable)(const git_transfer_progress *stats, BOOL *stop))progressBlock sidebandProgress:(void (^ _Nullable)(const char *str, int len, BOOL * stop))sidebandProgress;
+
+
 /// Enumerate all available fetch head entries.
 ///
 /// error - The error if one ocurred. Can be NULL.
@@ -86,6 +89,8 @@ typedef NS_ENUM(NSInteger, GTFetchPruneOption) {
 /// Returns YES if the push was successful, NO otherwise (and `error`, if provided,
 /// will point to an error describing what happened).
 - (BOOL)pushBranch:(GTBranch *)branch toRemote:(GTRemote *)remote withOptions:(NSDictionary * _Nullable)options error:(NSError **)error progress:(void (^ _Nullable)(unsigned int current, unsigned int total, size_t bytes, BOOL *stop))progressBlock;
+
+- (BOOL)pushBranch:(GTBranch *)branch toRemote:(GTRemote *)remote withOptions:(NSDictionary * _Nullable)options error:(NSError **)error progress:(void (^ _Nullable)(unsigned int current, unsigned int total, size_t bytes, BOOL *stop))progressBlock sidebandProgress:(void (^ _Nullable)(const char *str, int len, BOOL * stop))sidebandProgress;
 
 /// Push an array of branches to a remote.
 ///

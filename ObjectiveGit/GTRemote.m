@@ -234,4 +234,9 @@ NSString * const GTRemoteRenameProblematicRefSpecs = @"GTRemoteRenameProblematic
 	return YES;
 }
 
+- (void)stop {
+	git_remote * remote = [self git_remote];
+	git_remote_stop(remote);
+}
+
 @end
