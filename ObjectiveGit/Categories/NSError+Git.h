@@ -28,9 +28,80 @@
 //
 
 #import <Foundation/Foundation.h>
+#import "git2/errors.h"
+#import "GTReference.h"
 
 /// The error domain used by Objective-Git
-extern NSString * const GTGitErrorDomain;
+extern NSErrorDomain const GTGitErrorDomain;
+typedef NS_ERROR_ENUM(GTGitErrorDomain, GTGitError) {
+	nomemory = GITERR_NOMEMORY,
+	os = GITERR_OS,
+	invalid = GITERR_INVALID,
+	reference = GITERR_REFERENCE,
+	zlib = GITERR_ZLIB,
+	repository = GITERR_REPOSITORY,
+	config = GITERR_CONFIG,
+	regex = GITERR_REGEX,
+	odb = GITERR_ODB,
+	indexError = GITERR_INDEX,
+	object = GITERR_OBJECT,
+	net = GITERR_NET,
+	tag = GITERR_TAG,
+	tree = GITERR_TREE,
+	indexer = GITERR_INDEXER,
+	ssl = GITERR_SSL,
+	submodule = GITERR_SUBMODULE,
+	thread = GITERR_THREAD,
+	stash = GITERR_STASH,
+	checkout = GITERR_CHECKOUT,
+	fetchhead = GITERR_FETCHHEAD,
+	merge = GITERR_MERGE,
+	ssh = GITERR_SSH,
+	filterError = GITERR_FILTER,
+	revert = GITERR_REVERT,
+	callback = GITERR_CALLBACK,
+	cherrypick = GITERR_CHERRYPICK,
+	describe = GITERR_DESCRIBE,
+	rebase = GITERR_REBASE,
+	filesystem = GITERR_FILESYSTEM,
+	patch = GITERR_PATCH,
+	worktree = GITERR_WORKTREE,
+	sha = GITERR_SHA1,
+	
+	error = GIT_ERROR,
+	enotfound = GIT_ENOTFOUND,
+	eexists = GIT_EEXISTS,
+	eambiguous = GIT_EAMBIGUOUS,
+	ebufs = GIT_EBUFS,
+	
+	euser = GIT_EUSER,
+	
+	ebarerepo = GIT_EBAREREPO,
+	eunbornbranch = GIT_EUNBORNBRANCH,
+	eunmerged = GIT_EUNMERGED,
+	enonfastforward = GIT_ENONFASTFORWARD,
+	einvalidspec = GIT_EINVALIDSPEC,
+	econflict = GIT_ECONFLICT,
+	elocked = GIT_ELOCKED,
+	emodified = GIT_EMODIFIED,
+	eauth = GIT_EAUTH,
+	ecertificate = GIT_ECERTIFICATE,
+	eapplied = GIT_EAPPLIED,
+	epeel = GIT_EPEEL,
+	eeof = GIT_EEOF,
+	einvalid = GIT_EINVALID,
+	euncommitted = GIT_EUNCOMMITTED,
+	edirectory = GIT_EDIRECTORY,
+	emergeconflict = GIT_EMERGECONFLICT,
+	
+	passthrough = GIT_PASSTHROUGH,
+	iterover = GIT_ITEROVER,
+	retry = GIT_RETRY,
+	emismatch = GIT_EMISMATCH,
+	
+	invalidReference = GTReferenceErrorCodeInvalidReference
+
+};
 
 /// Error userinfo keys
 extern NSString * const GTGitErrorOID;
