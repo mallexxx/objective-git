@@ -107,6 +107,9 @@ typedef NS_ENUM(NSInteger, GTFetchPruneOption) {
 /// will point to an error describing what happened).
 - (BOOL)pushBranches:(NSArray<GTBranch *> *)branches toRemote:(GTRemote *)remote withOptions:(NSDictionary * _Nullable)options error:(NSError **)error progress:(void (^ _Nullable)(unsigned int current, unsigned int total, size_t bytes, BOOL *stop))progressBlock;
 
+- (BOOL)pushRefspecs:(NSArray *)refspecs toRemote:(GTRemote *)remote withOptions:(NSDictionary *)options error:(NSError **)error progress:(void (^ _Nullable)(unsigned int current, unsigned int total, size_t bytes, BOOL *stop))progressBlock sidebandProgress:(void (^ _Nullable)(const char *str, int len, BOOL * stop))sidebandProgress;
+
+	
 /// Push a given Git notes reference name to a remote.
 ///
 /// noteReferenceName - Name of the notes reference. If NULL, will default to whatever the default is (e.g. "refs/notes/commits")
