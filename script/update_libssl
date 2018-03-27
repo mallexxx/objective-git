@@ -1,0 +1,70 @@
+#!/bin/bash
+
+# source the common build functions
+export PATH="/usr/local/bin:$PATH"
+
+SCRIPT_DIR=$(dirname "$0")
+pushd "$SCRIPT_DIR/.." > /dev/null
+ROOT_PATH="$PWD"
+popd > /dev/null
+
+function setup ()
+{
+    if [ -f "${ROOT_PATH}/External/openssl/lib/libssl.a" ] && [ -f "${ROOT_PATH}/External/openssl/lib/libcrypto.a" ] && [ -d "${ROOT_PATH}/External/openssl/bin/lib/pkgconfig" ]
+    then
+        echo "No OpenSSL update needed."
+        exit 0
+    fi
+
+    LIBRARY_NAME="OpenSSL"
+	echo "Building OpenSSL"
+}
+
+function build_ssl () 
+{
+	SRC_PATH="${ROOT_PATH}/External/openssl"
+    rm -rf "${SRC_PATH}/bin"
+    pushd "${SRC_PATH}" > /dev/null
+	rm -f *.a
+
+	ARCH=x86_64
+
+	DEVELOPER=`xcode-select -p`
+	PLATFORM="MacOSX"
+	HOST="darwin64-x86_64-cc"
+	CONFIG="no-shared"
+
+	export CROSS_TOP="$DEVELOPER/Platforms/$PLATFORM.platform/Developer"
+	export CROSS_SDK="$PLATFORM.sdk"
+	export SDKROOT="$CROSS_TOP/SDKs/$CROSS_SDK"
+	export CC="clang -arch $ARCH"
+
+	echo "Building to ${SRC_PATH}/bin"
+	mkdir "${SRC_PATH}/bin"
+    ./Configure ${HOST} ${CONFIG} --openssldir="${SRC_PATH}/bin" --prefix="${SRC_PATH}/bin"
+    sed -ie "s!^CFLAG=!CFLAG=-isysroot $SDKROOT !" "Makefile"
+
+    make
+	make install_sw
+
+    popd > /dev/null
+
+    BUILT_CRYPTO_PATHS+=("${SRC_PATH}/bin/lib/libcrypto.a")
+    BUILT_SSL_PATHS+=("${SRC_PATH}/bin/lib/libssl.a")
+}
+
+function fat_binary ()
+{
+    echo "Building fat binary..."
+
+    mkdir -p "${ROOT_PATH}/External/openssl/lib"
+
+    lipo -create "${BUILT_CRYPTO_PATHS[@]}" -output "${ROOT_PATH}/External/openssl/lib/libcrypto.a"
+    lipo -create "${BUILT_SSL_PATHS[@]}" -output "${ROOT_PATH}/External/openssl/lib/libssl.a"
+
+    echo "Building done."
+}
+
+setup
+build_ssl
+fat_binary

@@ -1,5 +1,0 @@
-github "jspahrsummers/xcconfigs" >= 0.7.1
-github "Quick/Quick" ~> 1.1.0
-github "Quick/Nimble" ~> 7.0.3
-github "ZipArchive/ZipArchive" ~> 1.1
-github "mallexxx/libgit2" "master"

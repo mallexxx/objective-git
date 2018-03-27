@@ -1,0 +1,60 @@
+#!/bin/bash
+
+set -e
+
+export PATH="/usr/local/bin:$PATH"
+
+SCRIPT_DIR=$(dirname "$0")
+pushd "$SCRIPT_DIR/.." > /dev/null
+ROOT_PATH="$PWD"
+popd > /dev/null
+
+${SCRIPT_DIR}/update_libssl
+
+function setup ()
+{
+	if [ -f "${ROOT_PATH}/External/libssh2/lib/libssh2.a" ] && [ -d "${ROOT_PATH}/External/libssh2/bin/lib/pkgconfig" ] && [ -d "${ROOT_PATH}/External/libssh2/bin/include" ]
+    then
+        echo "No libssh2 update needed."
+        exit 0
+    fi
+    LIBRARY_NAME="libssh2"
+	echo "Building libssh2"
+}
+
+function build_ssh2 () 
+{
+    mkdir -p "${ROOT_PATH}/External/libssh2/lib" "${ROOT_PATH}/External/libssh2/lib" "${ROOT_PATH}/External/libssh2/src"
+    pushd "${ROOT_PATH}/External/libssh2" > /dev/null
+
+	ARCH=x86_64
+	HOST="${ARCH}-apple-darwin"
+
+	export CFLAGS="-arch $ARCH -pipe -no-cpp-precomp"
+	export CPPFLAGS="-arch $ARCH -pipe -no-cpp-precomp"
+
+	OPENSSLDIR="${ROOT_PATH}/External/openssl"
+	PLATFORM_OUT="${ROOT_PATH}/External/libssh2/bin"
+
+	./buildconf
+    ./configure --host=$HOST --prefix="$PLATFORM_OUT" --disable-debug --disable-dependency-tracking --disable-silent-rules --disable-examples-build --with-libz --with-crypto=openssl --with-libssl-prefix="$OPENSSLDIR" --disable-shared --enable-static
+
+    make
+    make install
+    popd > /dev/null
+
+    BUILT_LIBS+=("${ROOT_PATH}/External/libssh2/bin/lib/libssh2.a")
+}
+
+function fat_binary ()
+{
+    echo "Building fat binary..."
+
+    lipo -create "${BUILT_LIBS[@]}" -output "${ROOT_PATH}/External/libssh2/lib/libssh2.a"
+
+    echo "Building done."
+}
+
+setup
+build_ssh2
+fat_binary

@@ -1,0 +1,57 @@
+#!/bin/bash
+
+set -e
+
+export PATH="/usr/local/bin:$PATH"
+
+SCRIPT_DIR=$(dirname "$0")
+pushd "$SCRIPT_DIR/.." > /dev/null
+ROOT_PATH="$PWD"
+popd > /dev/null
+
+function setup ()
+{
+	if [ -f "${ROOT_PATH}/External/curl/lib/libcurl.a" ]
+    then
+        echo "No libcurl update needed."
+        exit 0
+    fi
+    LIBRARY_NAME="libcurl"
+	echo "Building libcurl"
+}
+
+function build_curl ()
+{
+    mkdir -p "${ROOT_PATH}/External/curl/bin"
+    pushd "${ROOT_PATH}/External/curl" > /dev/null
+
+	ARCH=x86_64
+	HOST="${ARCH}-apple-darwin"
+
+#	export CFLAGS="-arch $ARCH -pipe -no-cpp-precomp"
+#	export CPPFLAGS="-arch $ARCH -pipe -no-cpp-precomp"
+#
+	PLATFORM_OUT="${ROOT_PATH}/External/curl/bin"
+#
+	./buildconf
+    ./configure --host=$HOST --prefix="$PLATFORM_OUT" --enable-static
+
+    make
+    make install
+    popd > /dev/null
+
+    BUILT_LIBS+=("${ROOT_PATH}/External/curl/bin/lib/libcurl.a")
+}
+
+function fat_binary ()
+{
+    echo "Building fat binary..."
+
+    lipo -create "${BUILT_LIBS[@]}" -output "${ROOT_PATH}/External/curl/lib/libcurl.a"
+
+    echo "Building done."
+}
+
+setup
+build_curl
+fat_binary
