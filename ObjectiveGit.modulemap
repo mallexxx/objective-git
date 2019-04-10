@@ -64,7 +64,6 @@ framework module ObjectiveGit {
 	header "git2/sys/refs.h"
 	header "git2/sys/repository.h"
 	header "git2/sys/transport.h"
-	header "git2/sys/time.h"
 	header "git2/cred_helpers.h"
 	header "git2/sys/openssl.h"
 	header "git2/sys/stream.h"
@@ -137,7 +136,6 @@ framework module ObjectiveGit {
 	exclude header "git2/sys/git2/sys/refs.h"
 	exclude header "git2/sys/git2/sys/repository.h"
 	exclude header "git2/sys/git2/sys/stream.h"
-	exclude header "git2/sys/git2/sys/time.h"
 	exclude header "git2/sys/git2/sys/transport.h"
 	exclude header "git2/sys/git2/sys/worktree.h"
 
