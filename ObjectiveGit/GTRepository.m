@@ -196,7 +196,9 @@ typedef struct {
 			if (idx < ceilingDirURLs.count - 1) {
 				[ceilingDirsString appendString:[NSString stringWithFormat:@"%@%c", url.path, GIT_PATH_LIST_SEPARATOR]];
 			} else {
-				[ceilingDirsString appendString:url.path];
+				NSString *path = url.path;
+				NSAssert(path != nil, @"Unexpected nil path component");
+				[ceilingDirsString appendString:path];
 			}
 		}];
 	}
@@ -315,7 +317,7 @@ struct GTRemoteCreatePayload {
 - (id)lookUpObjectByGitOid:(const git_oid *)oid objectType:(GTObjectType)type error:(NSError **)error {
 	git_object *obj;
 
-	int gitError = git_object_lookup(&obj, self.git_repository, oid, (git_otype)type);
+	int gitError = git_object_lookup(&obj, self.git_repository, oid, (git_object_t)type);
 	if (gitError < GIT_OK) {
 		if (error != NULL) {
 			char oid_str[GIT_OID_HEXSZ+1];
@@ -405,6 +407,10 @@ typedef void (^GTRepositoryBranchEnumerationBlock)(GTBranch *branch, BOOL *stop)
 		if (error) *error = [NSError git_errorFor:gitError description:@"Branch enumeration failed"];
 		return NO;
 	}
+	
+	@onExit {
+		git_branch_iterator_free(iter);
+	};
 
 	git_branch_t branchType;
 	while ((gitError = git_branch_next(&gitRef, &branchType, iter)) == GIT_OK) {
@@ -631,18 +637,22 @@ static int GTRepositoryForeachTagCallback(const char *name, git_oid *oid, void *
 }
 
 - (NSURL *)fileURL {
-	const char *path = git_repository_workdir(self.git_repository);
+	const char *cPath = git_repository_workdir(self.git_repository);
 	// bare repository, you may be looking for gitDirectoryURL
-	if (path == NULL) return nil;
+	if (cPath == NULL) return nil;
 
-	return [NSURL fileURLWithPath:@(path) isDirectory:YES];
+	NSString *path = @(cPath);
+	NSAssert(path, @"workdir is nil");
+	return [NSURL fileURLWithPath:path isDirectory:YES];
 }
 
 - (NSURL *)gitDirectoryURL {
-	const char *path = git_repository_path(self.git_repository);
-	if (path == NULL) return nil;
+	const char *cPath = git_repository_path(self.git_repository);
+	if (cPath == NULL) return nil;
 
-	return [NSURL fileURLWithPath:@(path) isDirectory:YES];
+	NSString *path = @(cPath);
+	NSAssert(path, @"gitdirectory is nil");
+	return [NSURL fileURLWithPath:path isDirectory:YES];
 }
 
 - (BOOL)isBare {
@@ -673,13 +683,13 @@ static int GTRepositoryForeachTagCallback(const char *name, git_oid *oid, void *
 	int errorCode = git_repository_message(&msg, self.git_repository);
 	if (errorCode != GIT_OK) {
 		setErrorFromCode(errorCode);
-		git_buf_free(&msg);
+		git_buf_dispose(&msg);
 		return nil;
 	}
 
 	NSString *message = [[NSString alloc] initWithBytes:msg.ptr length:msg.size encoding:NSUTF8StringEncoding];
 
-	git_buf_free(&msg);
+	git_buf_dispose(&msg);
 
 	return message;
 }
@@ -731,7 +741,9 @@ static int submoduleEnumerationCallback(git_submodule *git_submodule, const char
 
 	NSError *error;
 	// Use -submoduleWithName:error: so that we get a git_submodule that we own.
-	GTSubmodule *submodule = [info->parentRepository submoduleWithName:@(name) error:&error];
+	NSString *submoduleName = @(name);
+	NSCAssert(submoduleName, @"submodule name is nil");
+	GTSubmodule *submodule = [info->parentRepository submoduleWithName:submoduleName error:&error];
 
 	BOOL stop = NO;
 	info->block(submodule, error, &stop);

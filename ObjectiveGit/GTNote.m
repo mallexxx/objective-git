@@ -42,7 +42,9 @@
 }
 
 - (NSString *)note {
-	return @(git_note_message(self.git_note));
+	NSString *message = @(git_note_message(self.git_note));
+	NSAssert(message, @"message is nil");
+	return message;
 }
 
 - (GTSignature *)author {
@@ -96,7 +98,7 @@
 		if (error != NULL) *error = [NSError git_errorFor:GIT_ERROR description:@"Unable to get default git notes reference name"];
 	}
 	
-	git_buf_free(&default_ref_name);
+	git_buf_dispose(&default_ref_name);
 	
 	return noteRef;
 }

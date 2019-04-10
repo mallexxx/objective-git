@@ -45,7 +45,7 @@ static NSString *referenceTypeToString(GTReferenceType type) {
 		case GTReferenceTypeInvalid:
 			return @"invalid";
 
-		case GTReferenceTypeOid:
+		case GTReferenceTypeDirect:
 			return @"direct";
 
 		case GTReferenceTypeSymbolic:
@@ -118,10 +118,12 @@ static NSString *referenceTypeToString(GTReferenceType type) {
 }
 
 - (NSString *)name {
-	const char *refName = git_reference_name(self.git_reference);
-	if (refName == NULL) return nil;
+	const char *cRefName = git_reference_name(self.git_reference);
+	NSAssert(cRefName != nil, @"Unexpected nil name");
 
-	return @(refName);
+	NSString *refName = @(cRefName);
+	NSAssert(refName, @"refname is nil");
+	return refName;
 }
 
 - (GTReference *)referenceByRenaming:(NSString *)newName error:(NSError **)error {
@@ -142,7 +144,7 @@ static NSString *referenceTypeToString(GTReferenceType type) {
 }
 
 - (id)unresolvedTarget {
-	if (self.referenceType == GTReferenceTypeOid) {
+	if (self.referenceType == GTReferenceTypeDirect) {
 		const git_oid *oid = git_reference_target(self.git_reference);
 		if (oid == NULL) return nil;
 
@@ -158,7 +160,7 @@ static NSString *referenceTypeToString(GTReferenceType type) {
 
 - (id)resolvedTarget {
 	git_object *obj;
-	if (git_reference_peel(&obj, self.git_reference, GIT_OBJ_ANY) != GIT_OK) {
+	if (git_reference_peel(&obj, self.git_reference, GIT_OBJECT_ANY) != GIT_OK) {
 		return nil;
 	}
 
@@ -166,7 +168,8 @@ static NSString *referenceTypeToString(GTReferenceType type) {
 }
 
 - (GTReference *)resolvedReference {
-	return [self.class referenceByResolvingSymbolicReference:self error:NULL];
+	GTReference *resolvedReference = [self.class referenceByResolvingSymbolicReference:self error:NULL];
+	return resolvedReference ? resolvedReference : self;
 }
 
 - (GTOID *)targetOID {
@@ -178,7 +181,7 @@ static NSString *referenceTypeToString(GTReferenceType type) {
 
 	int gitError;
 	git_reference *newRef = NULL;
-	if (git_reference_type(self.git_reference) == GIT_REF_OID) {
+	if (git_reference_type(self.git_reference) == GIT_REFERENCE_DIRECT) {
 		GTOID *oid = [[GTOID alloc] initWithSHA:newTarget error:error];
 		if (oid == nil) return nil;
 

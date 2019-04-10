@@ -1,6 +1,6 @@
-github "jspahrsummers/xcconfigs" >= 0.7.1
-github "Quick/Quick" ~> 1.1.0
-github "Quick/Nimble" ~> 7.0.3
+github "jspahrsummers/xcconfigs" "master"
+github "Quick/Quick" ~> 1.3.4
+github "Quick/Nimble" ~> 7.3.3
 github "mallexxx/ZipArchive" "master"
 github "mallexxx/libgit2" "master"
 github "openssl/openssl" "master"

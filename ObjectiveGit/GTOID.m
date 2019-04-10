@@ -55,7 +55,9 @@
 
 - (instancetype)initWithSHA:(NSString *)SHA error:(NSError **)error {
 	NSParameterAssert(SHA != nil);
-	return [self initWithSHACString:SHA.UTF8String error:error];
+	const char *SHACString = SHA.UTF8String;
+	NSAssert(SHACString, @"Unexpected nil SHA");
+	return [self initWithSHACString:SHACString error:error];
 }
 
 - (instancetype)initWithSHA:(NSString *)SHA {
@@ -131,7 +133,7 @@
 	NSParameterAssert(data != nil);
 
 	git_oid oid;
-	int gitError = git_odb_hash(&oid, data.bytes, data.length, (git_otype)type);
+	int gitError = git_odb_hash(&oid, data.bytes, data.length, (git_object_t)type);
 	if (gitError != GIT_OK) {
 		if (error != NULL) *error = [NSError git_errorFor:gitError description:@"Failed to hash"];
 		return nil;

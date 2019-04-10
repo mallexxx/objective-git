@@ -6,9 +6,9 @@
 //  Copyright (c) 2013 GitHub, Inc. All rights reserved.
 //
 
-#import <Nimble/Nimble.h>
-#import <ObjectiveGit/ObjectiveGit.h>
-#import <Quick/Quick.h>
+@import ObjectiveGit;
+@import Nimble;
+@import Quick;
 
 #import "QuickSpec+GTFixtures.h"
 
@@ -114,7 +114,7 @@ describe(@"+cloneFromURL:toWorkingDirectory:options:error:transferProgressBlock:
 			expect(head).notTo(beNil());
 			expect(error).to(beNil());
 			expect(head.targetOID.SHA).to(equal(@"36060c58702ed4c2a40832c51758d5344201d89a"));
-			expect(@(head.referenceType)).to(equal(@(GTReferenceTypeOid)));
+			expect(@(head.referenceType)).to(equal(@(GTReferenceTypeDirect)));
 		});
 
 		it(@"should handle bare clones", ^{
@@ -139,7 +139,7 @@ describe(@"+cloneFromURL:toWorkingDirectory:options:error:transferProgressBlock:
 			expect(head).notTo(beNil());
 			expect(error).to(beNil());
 			expect(head.targetOID.SHA).to(equal(@"36060c58702ed4c2a40832c51758d5344201d89a"));
-			expect(@(head.referenceType)).to(equal(@(GTReferenceTypeOid)));
+			expect(@(head.referenceType)).to(equal(@(GTReferenceTypeDirect)));
 		});
 
 		it(@"should have set a valid remote URL", ^{
@@ -212,7 +212,7 @@ describe(@"-headReferenceWithError:", ^{
 		expect(head).notTo(beNil());
 		expect(error).to(beNil());
 		expect(head.targetOID.SHA).to(equal(@"36060c58702ed4c2a40832c51758d5344201d89a"));
-		expect(@(head.referenceType)).to(equal(@(GTReferenceTypeOid)));
+		expect(@(head.referenceType)).to(equal(@(GTReferenceTypeDirect)));
 	});
 
 	it(@"should fail to return HEAD for an unborn repo", ^{
@@ -257,6 +257,48 @@ describe(@"-preparedMessage", ^{
 		__block NSError *error = nil;
 		expect([repository preparedMessageWithError:&error]).to(equal(message));
 		expect(error).to(beNil());
+	});
+});
+
+describe(@"-contentsOfDiffWithAncestor:ourSide:theirSide:error:", ^{
+	it(@"should produce a nice merge conflict description", ^{
+		NSURL *mainURL = [repository.fileURL URLByAppendingPathComponent:@"main.m"];
+		NSData *mainData = [[NSFileManager defaultManager] contentsAtPath:mainURL.path];
+		expect(mainData).notTo(beNil());
+
+		NSString *mainString = [[NSString alloc] initWithData:mainData encoding:NSUTF8StringEncoding];
+		NSData *masterData = [[mainString stringByReplacingOccurrencesOfString:@"return" withString:@"//The meaning of life is 41\n    return"] dataUsingEncoding:NSUTF8StringEncoding];
+		NSData *otherData = [[mainString stringByReplacingOccurrencesOfString:@"return" withString:@"//The meaning of life is 42\n    return"] dataUsingEncoding:NSUTF8StringEncoding];
+
+		expect(@([[NSFileManager defaultManager] createFileAtPath:mainURL.path contents:masterData attributes:nil])).to(beTruthy());
+
+		GTIndex *index = [repository indexWithError:NULL];
+		expect(@([index addFile:mainURL.lastPathComponent error:NULL])).to(beTruthy());
+		GTReference *head = [repository headReferenceWithError:NULL];
+		GTCommit *parent = [repository lookUpObjectByOID:head.targetOID objectType:GTObjectTypeCommit error:NULL];
+		expect(parent).toNot(beNil());
+		GTTree *masterTree = [index writeTree:NULL];
+		expect(masterTree).toNot(beNil());
+
+		GTBranch *otherBranch = [repository lookUpBranchWithName:@"other-branch" type:GTBranchTypeLocal success:NULL error:NULL];
+		expect(otherBranch).toNot(beNil());
+		expect(@([repository checkoutReference:otherBranch.reference options:nil error:NULL])).to(beTruthy());
+
+		expect(@([[NSFileManager defaultManager] createFileAtPath:mainURL.path contents:otherData attributes:nil])).to(beTruthy());
+
+		index = [repository indexWithError:NULL];
+		expect(@([index addFile:mainURL.lastPathComponent error:NULL])).to(beTruthy());
+		GTTree *otherTree = [index writeTree:NULL];
+		expect(otherTree).toNot(beNil());
+
+		GTIndex *conflictIndex = [otherTree merge:masterTree ancestor:parent.tree error:NULL];
+		expect(@([conflictIndex hasConflicts])).to(beTruthy());
+
+		[conflictIndex enumerateConflictedFilesWithError:NULL usingBlock:^(GTIndexEntry * _Nonnull ancestor, GTIndexEntry * _Nonnull ours, GTIndexEntry * _Nonnull theirs, BOOL * _Nonnull stop) {
+
+			NSString *conflictString = [repository contentsOfDiffWithAncestor:ancestor ourSide:ours theirSide:theirs error:NULL];
+			expect(conflictString).to(equal(@"//\n//  main.m\n//  Test\n//\n//  Created by Joe Ricioppo on 9/28/10.\n//  Copyright 2010 __MyCompanyName__. All rights reserved.\n//\n\n#import <Cocoa/Cocoa.h>\n\nint main(int argc, char *argv[])\n{\n<<<<<<< file.txt\n    //The meaning of life is 42\n=======\n    //The meaning of life is 41\n>>>>>>> file.txt\n    return NSApplicationMain(argc,  (const char **) argv);\n}\n123456789\n123456789\n123456789\n123456789!blah!\n"));
+		}];
 	});
 });
 

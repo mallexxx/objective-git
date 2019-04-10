@@ -31,16 +31,14 @@
 #import "git2/types.h"
 
 typedef NS_ENUM(int, GTObjectType) {
-	GTObjectTypeAny = GIT_OBJ_ANY,				/**< Object can be any of the following */
-	GTObjectTypeBad = GIT_OBJ_BAD,				/**< Object is invalid. */
-	GTObjectTypeExt1 = GIT_OBJ__EXT1,			/**< Reserved for future use. */
-	GTObjectTypeCommit = GIT_OBJ_COMMIT,		/**< A commit object. */
-	GTObjectTypeTree = GIT_OBJ_TREE,			/**< A tree (directory listing) object. */
-	GTObjectTypeBlob = GIT_OBJ_BLOB,			/**< A file revision object. */
-	GTObjectTypeTag = GIT_OBJ_TAG,				/**< An annotated tag object. */
-	GTObjectTypeExt2 = GIT_OBJ__EXT2,			/**< Reserved for future use. */
-	GTObjectTypeOffsetDelta = GIT_OBJ_OFS_DELTA,/**< A delta, base is given by an offset. */
-	GTObjectTypeRefDelta = GIT_OBJ_REF_DELTA,	/**< A delta, base is given by object id. */
+	GTObjectTypeAny = GIT_OBJECT_ANY,				/**< Object can be any of the following */
+	GTObjectTypeBad = GIT_OBJECT_INVALID,				/**< Object is invalid. */
+	GTObjectTypeCommit = GIT_OBJECT_COMMIT,		/**< A commit object. */
+	GTObjectTypeTree = GIT_OBJECT_TREE,			/**< A tree (directory listing) object. */
+	GTObjectTypeBlob = GIT_OBJECT_BLOB,			/**< A file revision object. */
+	GTObjectTypeTag = GIT_OBJECT_TAG,				/**< An annotated tag object. */
+	GTObjectTypeOffsetDelta = GIT_OBJECT_OFS_DELTA,/**< A delta, base is given by an offset. */
+	GTObjectTypeRefDelta = GIT_OBJECT_REF_DELTA,	/**< A delta, base is given by object id. */
 };
 
 @class GTRepository;
@@ -52,10 +50,10 @@ NS_ASSUME_NONNULL_BEGIN
 @interface GTObject : NSObject
 
 @property (nonatomic, readonly) NSString *type;
-@property (nonatomic, readonly) NSString * _Nullable SHA;
-@property (nonatomic, readonly) NSString * _Nullable shortSHA;
+@property (nonatomic, readonly) NSString *SHA;
+@property (nonatomic, readonly) NSString *shortSHA;
 @property (nonatomic, readonly, strong) GTRepository *repository;
-@property (nonatomic, readonly) GTOID * _Nullable OID;
+@property (nonatomic, readonly) GTOID *OID;
 
 - (instancetype)init NS_UNAVAILABLE;
 
