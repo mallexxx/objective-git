@@ -20,7 +20,7 @@
 #import "GTOdbObject.h"
 #import "GTObjectDatabase.h"
 
-typedef void (^GTRemoteFetchTransferProgressBlock)(const git_transfer_progress *stats, BOOL *stop);
+typedef void (^GTRemoteFetchTransferProgressBlock)(const git_indexer_progress *stats, BOOL *stop);
 
 @implementation GTRepository (Merging)
 

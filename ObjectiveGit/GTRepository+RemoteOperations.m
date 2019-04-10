@@ -30,7 +30,7 @@ NSString *const GTRepositoryRemoteOptionsFetchPrune = @"GTRepositoryRemoteOption
 NSString *const GTRepositoryRemoteOptionsDownloadTags = @"GTRepositoryRemoteOptionsDownloadTags";
 NSString *const GTRepositoryRemoteOptionsPushNotes = @"GTRepositoryRemoteOptionsPushNotes";
 
-typedef void (^GTRemoteFetchTransferProgressBlock)(const git_transfer_progress *stats, BOOL *stop);
+typedef void (^GTRemoteFetchTransferProgressBlock)(const git_indexer_progress *stats, BOOL *stop);
 typedef void (^GTRemotePushTransferProgressBlock)(unsigned int current, unsigned int total, size_t bytes, BOOL *stop);
 typedef void (^GTRemoteFetchSidebandProgressBlock)(const char *str, int len, BOOL *stop);
 
@@ -58,7 +58,7 @@ int GTRemoteFetchSidebandProgressCallback(const char *str, int len, void *payloa
 	return (stop == YES ? GIT_EUSER : 0);
 }
 
-int GTRemoteFetchTransferProgressCallback(const git_transfer_progress *stats, void *payload) {
+int GTRemoteFetchTransferProgressCallback(const git_indexer_progress *stats, void *payload) {
 	GTRemoteConnectionInfo *info = payload;
 	BOOL stop = NO;
 

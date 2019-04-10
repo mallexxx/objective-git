@@ -9,6 +9,7 @@
 #import "GTOdbObject.h"
 #import "NSString+Git.h"
 #import "GTOID.h"
+#import "git2/indexer.h"
 #import "git2/odb.h"
 
 @interface GTOdbObject ()
