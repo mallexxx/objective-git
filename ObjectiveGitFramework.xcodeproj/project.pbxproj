@@ -563,9 +563,6 @@
 		8DC2EF5B0486A6940098B216 /* ObjectiveGit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = ObjectiveGit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA046110134F4D2000DF526B /* GTOdbObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTOdbObject.h; sourceTree = "<group>"; };
 		AA046111134F4D2000DF526B /* GTOdbObject.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; lineEnding = 0; path = GTOdbObject.m; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objc; };
-		B6268ACB2068FA2400C046D9 /* update_libssh2 */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = update_libssh2; path = script/update_libssh2; sourceTree = SOURCE_ROOT; };
-		B6268ACC2069078D00C046D9 /* update_libssl */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = update_libssl; path = script/update_libssl; sourceTree = SOURCE_ROOT; };
-		B6268ACD206909E100C046D9 /* update_curl */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = update_curl; path = script/update_curl; sourceTree = SOURCE_ROOT; };
 		BD441E06131ED0C300187010 /* GTReference.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTReference.h; sourceTree = "<group>"; };
 		BD441E07131ED0C300187010 /* GTReference.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; lineEnding = 0; path = GTReference.m; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objc; };
 		BD6B040F131496B8001909D0 /* GTTree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTTree.h; sourceTree = "<group>"; };
@@ -1062,24 +1059,11 @@
 				D0D81867174421EB00995A2E /* macOS-Application.xcconfig */,
 				D0D81868174421EB00995A2E /* macOS-Base.xcconfig */,
 				D0D81869174421EB00995A2E /* macOS-DynamicLibrary.xcconfig */,
-				D0D8186A174421EB00995A2E /* macOS-Framework.xcconfig' */,
+				D0D8186A174421EB00995A2E /* macOS-Framework.xcconfig */,
 				D0D8186B174421EB00995A2E /* macOS-StaticLibrary.xcconfig */,
 				F81B6B54207B0A9F00AB0836 /* macOS-XCTest.xcconfig */,
 			);
-			path = "macOS";
-			sourceTree = "<group>";
-		};
-		E46931A6172740D300F2077D /* Scripts */ = {
-			isa = PBXGroup;
-			children = (
-				6A3C60A017D5987600382DFF /* update_libssh2_ios */,
-				B6268ACC2069078D00C046D9 /* update_libssl */,
-				B6268ACB2068FA2400C046D9 /* update_libssh2 */,
-				B6268ACD206909E100C046D9 /* update_curl */,
-				E46931A7172740D300F2077D /* update_libgit2 */,
-				E46931A8172740D300F2077D /* update_libgit2_ios */,
-			);
-			path = Scripts;
+			path = macOS;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -1718,15 +1702,13 @@
 				INFOPLIST_FILE = Info.plist;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					/usr/local/opt/openssl/lib,
-					"$(PROJECT_DIR)/External/build/lib",
+					"$(PROJECT_DIR)/External/openssl/lib",
 				);
 				MODULEMAP_FILE = ObjectiveGit.modulemap;
 				OTHER_LDFLAGS = (
 					"-lgit2",
 					"-force_load",
 					External/libgit2.a,
-					/usr/local/lib/libssh2.a,
 					"-lcrypto",
 					"-lssl",
 					"-lcurl",
@@ -1747,15 +1729,13 @@
 				INFOPLIST_FILE = Info.plist;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					/usr/local/opt/openssl/lib,
-					"$(PROJECT_DIR)/External/build/lib",
+					"$(PROJECT_DIR)/External/openssl/lib",
 				);
 				MODULEMAP_FILE = ObjectiveGit.modulemap;
 				OTHER_LDFLAGS = (
 					"-lgit2",
 					"-force_load",
 					External/libgit2.a,
-					/usr/local/lib/libssh2.a,
 					"-lcrypto",
 					"-lssl",
 					"-lcurl",
@@ -1796,7 +1776,6 @@
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = (
 					"$(inherited)",
-					"-DGIT_SSH",
 				);
 				SWIFT_VERSION = 3.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -1835,7 +1814,6 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				OTHER_CFLAGS = (
 					"$(inherited)",
-					"-DGIT_SSH",
 				);
 				SWIFT_VERSION = 3.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -1969,7 +1947,6 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				OTHER_CFLAGS = (
 					"$(inherited)",
-					"-DGIT_SSH",
 				);
 				SWIFT_VERSION = 3.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -1990,15 +1967,13 @@
 				INFOPLIST_FILE = Info.plist;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					/usr/local/opt/openssl/lib,
-					"$(PROJECT_DIR)/External/build/lib",
+					"$(PROJECT_DIR)/External/openssl/lib",
 				);
 				MODULEMAP_FILE = ObjectiveGit.modulemap;
 				OTHER_LDFLAGS = (
 					"-lgit2",
 					"-force_load",
 					External/libgit2.a,
-					/usr/local/lib/libssh2.a,
 					"-lcrypto",
 					"-lssl",
 					"-lcurl",
@@ -2190,7 +2165,6 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				OTHER_CFLAGS = (
 					"$(inherited)",
-					"-DGIT_SSH",
 				);
 				SWIFT_VERSION = 3.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -2211,15 +2185,13 @@
 				INFOPLIST_FILE = Info.plist;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					/usr/local/opt/openssl/lib,
-					"$(PROJECT_DIR)/External/build/lib",
+					"$(PROJECT_DIR)/External/openssl/lib",
 				);
 				MODULEMAP_FILE = ObjectiveGit.modulemap;
 				OTHER_LDFLAGS = (
 					"-lgit2",
 					"-force_load",
 					External/libgit2.a,
-					/usr/local/lib/libssh2.a,
 					"-lcrypto",
 					"-lssl",
 					"-lcurl",
