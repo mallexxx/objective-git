@@ -138,6 +138,12 @@ framework module ObjectiveGit {
 	exclude header "git2/sys/git2/sys/stream.h"
 	exclude header "git2/sys/git2/sys/transport.h"
 	exclude header "git2/sys/git2/sys/worktree.h"
+	exclude header "git2/sys/git2/mailmap.h"
+	exclude header "git2/sys/git2/worktree.h"
+	exclude header "git2/sys/git2/sys/path.h"
+	exclude header "git2/sys/git2/sys/alloc.h"
+	exclude header "git2/sys/git2/deprecated.h"
+	exclude header "git2/sys/git2/apply.h"
 
 	export *
 	module * { export * }
